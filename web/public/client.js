@@ -29,10 +29,10 @@ function init() {
 
 	scene = new THREE.Scene();
 
-	geometry = new THREE.CubeGeometry( 20, 20, 20 );
+	geometry = new THREE.CylinderGeometry( 10, 0, 20 );
 	material = new THREE.MeshBasicMaterial( { color: 0x0000ff, wireframe: false } );
-
 	mesh = new THREE.Mesh( geometry, material );
+	console.log(mesh);
 	scene.add( mesh );
 
 	addOriginLines();
@@ -46,8 +46,10 @@ function init() {
 	document.body.appendChild( renderer.domElement );
 	
 	fps = new THREE.FirstPersonControls(camera,renderer.domElement);
-	fps.movementSpeed = 100;
-	fps.lookSpeed = 0.06;
+	fps.movementSpeed = 250;
+	fps.lookSpeed = 0.25;
+	fps.freeze = true;
+	//fps.target = new THREE.Vector3(0,0,-1.0);
 	
 }
 
@@ -59,12 +61,26 @@ function animate() {
 	
 	mesh.position.x = sim[index].pos.x;
 	mesh.position.y = sim[index].pos.y;
+	mesh.position.z = sim[index].pos.z;
 	
+	var vel = v(sim[index].vel.x, sim[index].vel.y, sim[index].vel.z);
+	vel.normalize();
+
+	var xRot = Math.acos( vel.dot(v(1,0,0)));
+	var yRot = Math.acos( vel.dot(v(0,1,0)));
+	var zRot = Math.acos( vel.dot(v(0,0,1)));
+
+	mesh.rotation.x = -xRot;
+	mesh.rotation.y =  yRot;
+	mesh.rotation.z = -zRot;
+	
+	//mesh.rotation.y = Math.PI;
+
 	if(index < (sim.length-1))
 		index++; 
 
-	mesh.rotation.x += 0.01;
-	mesh.rotation.y += 0.02;
+	//mesh.rotation.x += 0.01;
+	//mesh.rotation.y += 0.02;
 	renderer.render( scene, camera );
 	//setTimeout(animate,1000);
 }
@@ -118,27 +134,6 @@ function addBoxOutline(){
 	);
 	var lineMat = new THREE.LineBasicMaterial( {
 		color: 0xcccccc, lineWidth: 1});
-	var line = new THREE.Line(lineGeo, lineMat);
-	line.type = THREE.Lines;
-	scene.add(line);
-
-}
-
-function addGridLines(){
-	var lineGeo = new THREE.Geometry();
-	var gridSize = 16; 
-	
-
-	//for(var i = -SimBox.X; i < SimBox.X; i+= 16)
-		
-
-	lineGeo.vertices.push(
-			v(-l, 0, 0), v(l,0,0),
-			v(0, -l, 0), v(0,l,0),
-			v(0, 0, -l), v(0,0,l)
-	);
-	var lineMat = new THREE.LineBasicMaterial( {
-		color: 0xffffff, lineWidth: 2});
 	var line = new THREE.Line(lineGeo, lineMat);
 	line.type = THREE.Lines;
 	scene.add(line);
