@@ -18,6 +18,33 @@ var SimBox = {
 	Z : 512
 };
 
+var ship1, ship2;
+function Ship ()
+{
+	this.geometry = new THREE.CylinderGeometry( 10, 0, 20 );
+	this.material = new THREE.MeshBasicMaterial( { color: 0x0000ff, wireframe: false } );
+	this.mesh = new THREE.Mesh( this.geometry, this.material );
+	scene.add( this.mesh );
+}
+Ship.prototype.update = function(simObject)
+{
+	simObject = simObject.Ship.Base.SpaceObject;
+	this.mesh.position.x = simObject.pos.x;
+	this.mesh.position.y = simObject.pos.y;
+	this.mesh.position.z = simObject.pos.z;
+	
+	var vel = v(simObject.vel.x, simObject.vel.y, simObject.vel.z);
+	vel.normalize();
+	
+	var xRot = Math.acos( vel.dot(v(1,0,0)));
+	var yRot = Math.acos( vel.dot(v(0,1,0)));
+	var zRot = Math.acos( vel.dot(v(0,0,1)));
+
+	this.mesh.rotation.x = -xRot;
+	this.mesh.rotation.y = yRot;
+	this.mesh.rotation.z = -zRot;
+}
+
 var fps;
 
 function init() {
@@ -29,11 +56,8 @@ function init() {
 
 	scene = new THREE.Scene();
 
-	geometry = new THREE.CylinderGeometry( 10, 0, 20 );
-	material = new THREE.MeshBasicMaterial( { color: 0x0000ff, wireframe: false } );
-	mesh = new THREE.Mesh( geometry, material );
-	console.log(mesh);
-	scene.add( mesh );
+	ship1 = new Ship();
+	ship2 = new Ship();
 
 	addOriginLines();
 	addBoxOutline();
@@ -49,8 +73,7 @@ function init() {
 	fps.movementSpeed = 250;
 	fps.lookSpeed = 0.25;
 	fps.freeze = true;
-	//fps.target = new THREE.Vector3(0,0,-1.0);
-	
+	//fps.target = new THREE.Vector3(0,0,-1.0);	
 }
 
 function animate() {
@@ -59,30 +82,14 @@ function animate() {
 	requestAnimationFrame( animate );
 	fps.update(clock.getDelta());
 	
-	mesh.position.x = sim[index].pos.x;
-	mesh.position.y = sim[index].pos.y;
-	mesh.position.z = sim[index].pos.z;
-	
-	var vel = v(sim[index].vel.x, sim[index].vel.y, sim[index].vel.z);
-	vel.normalize();
+	ship1.update(sim[index]["s1"]);
+	ship2.update(sim[index]["s2"]);
 
-	var xRot = Math.acos( vel.dot(v(1,0,0)));
-	var yRot = Math.acos( vel.dot(v(0,1,0)));
-	var zRot = Math.acos( vel.dot(v(0,0,1)));
-
-	mesh.rotation.x = -xRot;
-	mesh.rotation.y =  yRot;
-	mesh.rotation.z = -zRot;
-	
-	//mesh.rotation.y = Math.PI;
 
 	if(index < (sim.length-1))
 		index++; 
 
-	//mesh.rotation.x += 0.01;
-	//mesh.rotation.y += 0.02;
 	renderer.render( scene, camera );
-	//setTimeout(animate,1000);
 }
 
 socket.on('data', function (data) {
@@ -90,8 +97,7 @@ socket.on('data', function (data) {
 	sim = data;
 
 	init();
-	setTimeout(animate,1000);
-	//animate();
+	animate();
 });
 
 function v(x,y,z) {

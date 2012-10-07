@@ -1,5 +1,5 @@
 import math
-
+from random import randrange
 
 class Vec3:
 	def __init__(self,X=0.0,Y=0.0,Z=0.0):
@@ -36,19 +36,32 @@ class Vec3:
 
 
 
-class Object:
+class SpaceObject:
 	def __init__(self):
 		self.pos = Vec3()
 		self.vel = Vec3()
 		self.acc = Vec3()
+		
+	def update(self, dt): 
+		self.vel += self.acc.scale(dt)
+		self.pos += self.vel.scale(dt)
+
+	def __repr__(self):
+		return '{ "SpaceObject":{ "pos":'+str(self.pos)+',"vel":'+str(self.vel)+',"acc":'+str(self.acc)+'}}'
+
+
+class Ship(SpaceObject):
+	def __init__(self):
+		SpaceObject.__init__(self)
+
+		self.id = 0
+		self.player = 'none'
 
 		self.look = Vec3()
 		self.maxAcc   = 0.03
 		self.maxSpeed = 1.0
-
-
-	def update(self, dt): 
-		
+	
+	def update(self,dt):
 		if self.look.mag() != 0.0:
 			b = self.look.normalize()
 			a1 = b.scale(self.vel.dot(b))
@@ -58,37 +71,53 @@ class Object:
 		if self.vel.mag() >= self.maxSpeed:
 			self.vel = self.vel.scale( self.maxSpeed / self.vel.mag() )
 
-		self.vel += self.acc.scale(dt)
-		self.pos += self.vel.scale(dt)
-
+		SpaceObject.update(self,dt)
+	
 	def __repr__(self):
-		return '{ "pos":'+str(self.pos)+',"vel":'+str(self.vel)+',"acc":'+str(self.acc)+',"look":'+str(self.look)+'}'
+		return '{ "Ship":{ "id":'+str(self.id)+',"player":"'+self.player+'","Base":'+SpaceObject.__repr__(self)+'}}'
+
 
 	
 
 
+class ShipSpawner:
+	def __init__(self, Player='none'):
+		self.player = Player
+		self.nextID = 0
+		self.pos = Vec3()
+		self.spawnRadius = 20
+	
+	def spawn(self):
+		s = Ship()
+		s.player = self.player
+		
+		s.id = self.nextID
+		self.nextID += 1
 
+		s.pos = self.pos + Vec3( randrange(self.spawnRadius),randrange(self.spawnRadius),randrange(self.spawnRadius))
+		
+		return s
+	
 
-o = Object()
-o.pos.set([200,0,0])
-o.vel.set([-1,1,-1])
-#o.acc.set([-0.1,0,0])
+base = ShipSpawner('patrick')
+base.pos.set([100,0,0])
+s1 = base.spawn()
+s2 = base.spawn()
 
 simSteps = 2500
 
 print '['
 for i in range(simSteps):
-	o.update(1)
+	s1.update(1)
+	s2.update(1)
 
-	#d = ( - o.pos.normalize()).scale(0.1);
-	#o.acc = d
-
-	if i == 650:
-		o.look.set([0,0,1])
+	if i == 950:
+		s1.look.set([0,0,1])
+		s2.look.set([-1,-1,-1])
 	
+	print '{ "s1":'+str(s1)+',"s2":'+str(s2)+'}'
 	if i != (simSteps-1):
-		print o,','
-	else:
-		print o
+		print ','
+
 print ']'
 
