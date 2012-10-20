@@ -36,9 +36,9 @@ Ship.prototype.update = function(simObject)
 	var vel = v(simObject.vel.x, simObject.vel.y, simObject.vel.z);
 	vel.normalize();
 	
-	var xRot = Math.acos( vel.dot(v(1,0,0)));
-	var yRot = Math.acos( vel.dot(v(0,1,0)));
-	var zRot = Math.acos( vel.dot(v(0,0,1)));
+	var xRot = Math.acos( vel.dot(v(1, 0,0)));
+	var yRot = Math.acos( vel.dot(v(0,-1,0)));
+	var zRot = Math.acos( vel.dot(v(0, 0,1)));
 
 	this.mesh.rotation.x = -xRot;
 	this.mesh.rotation.y = yRot;
